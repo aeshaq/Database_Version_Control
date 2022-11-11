@@ -5,14 +5,12 @@ import java.util.Date;
 public class Repository {
 
     private final String Repository_name;
-    private final Organization organization;
     private final String Organization_name;
     private final Date date;
 
-    public Repository(String name, Organization organization, String organization_name, Date date) {
+    public Repository(String name, String organization_name, Date date) {
         Repository_name = name;
-        this.organization = organization;
-        this.Organization_name = organization.getOrganization_name();
+        this.Organization_name = organization_name;
         this.date = date;
     }
 

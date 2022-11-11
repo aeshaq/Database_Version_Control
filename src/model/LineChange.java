@@ -2,13 +2,11 @@ package model;
 
 public class LineChange {
 
-    private final Commit commit;
     private final String Commit_SHA;
     private final int Line_number;
 
-    public LineChange(Commit commit, int line_number) {
-        this.commit = commit;
-        this.Commit_SHA = commit.getCommit_SHA();
+    public LineChange(String commitSHA, int line_number) {
+        this.Commit_SHA = commitSHA;
         this.Line_number = line_number;
     }
 
