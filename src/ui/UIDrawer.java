@@ -3,6 +3,7 @@ package ui;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import ui.LoginUI;
 
 public class UIDrawer extends JFrame {
 
@@ -11,6 +12,8 @@ public class UIDrawer extends JFrame {
     private TabButton UserTab;
     private TabButton RepoTab;
     private TabButton OrgTab;
+    private JPanel contentPanel;
+    private GridBagConstraints c;
      
     private int windowX;
     private int windowY;
@@ -24,7 +27,7 @@ public class UIDrawer extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         mainPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
+        c = new GridBagConstraints();
         mainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 
         this.add(mainPanel);
@@ -42,10 +45,9 @@ public class UIDrawer extends JFrame {
         c.weightx = 1.0;
         mainPanel.add(fillerPanel, c);
 
-        UserTab = new TabButton("User Login");
-        RepoTab = new TabButton("Repositories");
-        OrgTab = new TabButton("Organizations");
-
+        UserTab = new TabButton("User Login", this);
+        RepoTab = new TabButton("Repositories", this);
+        OrgTab = new TabButton("Organizations", this);
 
         buttons.add(UserTab);
         buttons.add(RepoTab);
@@ -62,6 +64,16 @@ public class UIDrawer extends JFrame {
 
     public void updateCurrentTab(String currentTab) {
         this.currentTab = currentTab;
+        if (currentTab.equals("User Login")) {
+            contentPanel = new LoginUI();
+            c.gridx = 0;
+            c.gridy = 1;
+            c.weighty = 1.0;
+            c.weightx = 1.0;
+            mainPanel.add(contentPanel, c);
+            mainPanel.validate();
+        }
+        System.out.println(currentTab);
         // + more code to change existing buttons
     }
 
