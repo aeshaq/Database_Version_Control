@@ -1,12 +1,14 @@
 package model;
 
 public class Repository_Object {
+    private final String repositoryName;
     private final String File_name;
     private final String Path;
     private final int Size;
 
-    public Repository_Object(String name, String path, int size) {
-        this.File_name = name;
+    public Repository_Object(String repositoryName, String file_name, String path, int size) {
+        this.repositoryName = repositoryName;
+        this.File_name = file_name;
         this.Path = path;
         this.Size = size;
     }
