@@ -18,4 +18,5 @@ public class Repository_Object {
     public int getSize() {
         return Size;
     }
+    public String getRepositoryName() { return repositoryName; }
 }
