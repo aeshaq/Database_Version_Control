@@ -32,6 +32,15 @@ public class RepoUI extends JPanel {
     private Button createFileButton;
     private JLabel contentLabel;
 
+    private JPanel fileEditPanel;
+    private Button deleteFile;
+    private Button commit;
+    private JLabel fileEditLabel;
+    private JLabel commitLabel;
+    private JTextArea changes;
+    private JScrollPane changesScroll;
+    private JTextField linesChanged;
+
     public RepoUI() {
         this.setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
@@ -51,12 +60,24 @@ public class RepoUI extends JPanel {
         c.gridy = 0;
         this.add(filePanel, c);
 
+
+        JPanel column3Panel = new JPanel(); 
+        column3Panel.setLayout(new GridBagLayout());
+
         contentPanel = buildContentPanel();
+        c.gridx = 0;
+        c.gridy = 0;
+        column3Panel.add(contentPanel, c);
+
+        fileEditPanel = buildFileEditPanel();
+        c.gridx = 0;
+        c.gridy = 1;
+        column3Panel.add(fileEditPanel, c);
+
         c.gridx = 2;
         c.gridy = 0;
-        this.add(contentPanel, c);
-
-
+        this.add(column3Panel, c);
+        
     }
 
 
@@ -147,7 +168,7 @@ public class RepoUI extends JPanel {
         myPanel.add(fileScrollPane, c);
 
         c.fill = GridBagConstraints.BOTH;
-        c.weighty = 2.0;
+        c.weighty = 1.0;
         extensionList = new JTextArea("Extensions:\n.js, .lol, .xlsx, .mp4");
         extensionScroller= new JScrollPane(extensionList);
         extensionScroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -193,6 +214,49 @@ public class RepoUI extends JPanel {
         c.gridy = 3;
         myPanel.add(contentsScroll, c);
 
+        return myPanel;
+    }
+
+    private JPanel buildFileEditPanel() {
+        JPanel myPanel = new JPanel();
+        GridBagConstraints c = new GridBagConstraints();
+        myPanel.setLayout(new GridBagLayout());
+        
+        c.weightx = 5.0;
+        c.gridx = 0;
+        c.weighty = 0.0;
+        c.fill = GridBagConstraints.NONE;
+
+        deleteFile = new Button("Delete File");
+        c.gridy = 1;
+        myPanel.add(deleteFile, c);
+
+        commit = new Button("Commit Changes");
+        c.gridy = 5;
+        myPanel.add(commit, c);
+
+        commitLabel = new JLabel("Commit to currently selected file");
+        c.gridy = 2;
+        myPanel.add(commitLabel, c);
+
+        fileEditLabel = new JLabel("Operations with currently selected file: ");
+        c.gridy = 0;
+        myPanel.add(fileEditLabel, c);
+
+        c.fill = GridBagConstraints.HORIZONTAL;
+        linesChanged = new JTextField("");
+        c.gridy = 4;
+        myPanel.add(linesChanged, c);
+
+
+        c.fill = GridBagConstraints.BOTH;
+        c.weighty = 5.0;
+        changes = new JTextArea("Enter file changes here:");
+        changesScroll= new JScrollPane(changes);
+        changesScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        c.gridy = 3;
+        myPanel.add(changesScroll, c);
+        
         return myPanel;
     }
 }
