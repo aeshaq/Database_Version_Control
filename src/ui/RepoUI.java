@@ -51,11 +51,13 @@ public class RepoUI extends JPanel {
 
 
         repoPanel = buildRepoPanel();
+        repoPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         c.gridx = 0;
         c.gridy = 0;
         this.add(repoPanel, c);
 
         filePanel = buildFilePanel();
+        filePanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         c.gridx = 1;
         c.gridy = 0;
         this.add(filePanel, c);
@@ -65,11 +67,13 @@ public class RepoUI extends JPanel {
         column3Panel.setLayout(new GridBagLayout());
 
         contentPanel = buildContentPanel();
+        contentPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         c.gridx = 0;
         c.gridy = 0;
         column3Panel.add(contentPanel, c);
 
         fileEditPanel = buildFileEditPanel();
+        fileEditPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         c.gridx = 0;
         c.gridy = 1;
         column3Panel.add(fileEditPanel, c);
@@ -244,14 +248,14 @@ public class RepoUI extends JPanel {
         myPanel.add(fileEditLabel, c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
-        linesChanged = new JTextField("");
+        linesChanged = new JTextField("Lines changed:");
         c.gridy = 4;
         myPanel.add(linesChanged, c);
 
 
         c.fill = GridBagConstraints.BOTH;
         c.weighty = 5.0;
-        changes = new JTextArea("Enter file changes here:");
+        changes = new JTextArea("Enter new file contents here");
         changesScroll= new JScrollPane(changes);
         changesScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         c.gridy = 3;
