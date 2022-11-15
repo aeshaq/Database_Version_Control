@@ -21,7 +21,24 @@ public class DatabaseConnectionHandler {
             System.out.println(EXCEPTION_TAG + " " + e.getMessage());
         }
     }
+    public boolean login(String username, String password) {
+        try {
+            if (connection != null) {
+                connection.close();
+            }
 
+            System.out.println("Attempting to connect to Oracle");
+            connection = DriverManager.getConnection(ORACLE_URL, username, password);
+            System.out.println("Connection complete");
+            connection.setAutoCommit(false);
+
+            System.out.println("\nConnected to Oracle!");
+            return true;
+        } catch (SQLException e) {
+            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
+            return false;
+        }
+    }
     public void close() {
         try {
             if (connection != null) {
@@ -65,9 +82,11 @@ public class DatabaseConnectionHandler {
         ArrayList<Repository_Object> result = new ArrayList<>();
         try {
             PreparedStatement ps = connection.prepareStatement(
-                    "SELECT * FROM Repository_Object R WHERE R.Repository = ?"
+                    "SELECT * " +
+                        "FROM Repository_Object " +
+                        "WHERE Repository = ?"
             );
-            ps.setString(1, repository_name);
+            ps.setString(1,   repository_name);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Repository_Object model = new Repository_Object(
@@ -75,6 +94,7 @@ public class DatabaseConnectionHandler {
                         rs.getString("file_path"),
                         rs.getInt("File_size")
                 );
+                System.out.println("Repsitory name: " + rs.getString("Repository"));
                 result.add(model);
             }
             rs.close();
