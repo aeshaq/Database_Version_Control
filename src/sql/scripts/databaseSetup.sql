@@ -225,4 +225,3 @@ INSERT INTO Repository_Object(Repository, file_Path, file_extension, file_conten
 --             TO_TIMESTAMP('2022-04-12 11:32:06', 'YYYY-MM-DD HH24:MI:SS')
 -- );
 
-COMMIT;

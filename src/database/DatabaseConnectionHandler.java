@@ -84,7 +84,7 @@ public class DatabaseConnectionHandler {
             PreparedStatement ps = connection.prepareStatement(
                     "SELECT * " +
                         "FROM Repository_Object " +
-                        "WHERE Repository = ?"
+                        "WHERE Repository = '?'"
             );
             ps.setString(1,   repository_name);
             ResultSet rs = ps.executeQuery();
