@@ -1,11 +1,9 @@
 package database;
 
-import model.File;
-import model.Repository;
-import model.Repository_Object;
-
+import model.*;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class DatabaseConnectionHandler {
     private static final String ORACLE_URL = "jdbc:oracle:thin:@localhost:1522:stu";
@@ -53,14 +51,20 @@ public class DatabaseConnectionHandler {
      *  selects list of repository objects matching the given name
      * @return
      */
-    public Repository[] get_repositories(String repo_name, String organization_name) {
+    public Repository[] getRepositories(String repo_name, UserAccount user) {
         ArrayList<Repository> result = new ArrayList<>();
         try {
             PreparedStatement ps = connection.prepareStatement(
-                    "SELECT * FROM Repository R WHERE R.Organization_name = ? AND R.Repository_name LIKE ?"
+                    "SELECT R.repository_name as repository_name, " +
+                            "R.organization_name as organization_name, " +
+                            "R.date_created as date_created" +
+                        "FROM Repository R, IS_MEMBER_OF I " +
+                        "WHERE R.organization_name = I.organization_name " +
+                            "AND I.username = ? " +
+                            "AND R.repository_name LIKE ?"
             );
-            ps.setString(1, organization_name);
-            ps.setString(2, repo_name);
+            ps.setString(1, user.getUsername());
+            ps.setString(2, "%" + repo_name + "%");
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Repository model = new Repository(
@@ -82,17 +86,16 @@ public class DatabaseConnectionHandler {
         ArrayList<Repository_Object> result = new ArrayList<>();
         try {
             PreparedStatement ps = connection.prepareStatement(
-                    "SELECT * " +
-                        "FROM Repository_Object " +
-                        "WHERE Repository = '?'"
+                    "SELECT * FROM Repository_Object WHERE repository = ?"
             );
             ps.setString(1,   repository_name);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Repository_Object model = new Repository_Object(
                         rs.getString("Repository"),
+                        rs.getString("parent_directory_path"),
                         rs.getString("file_path"),
-                        rs.getInt("File_size")
+                        rs.getInt("file_size")
                 );
                 System.out.println("Repsitory name: " + rs.getString("Repository"));
                 result.add(model);
@@ -105,7 +108,7 @@ public class DatabaseConnectionHandler {
         return result.toArray(new Repository_Object[result.size()]);
     }
 
-    public String view_contents(File file) {
+    public String viewContents(File file) {
         String out = "";
         try {
             PreparedStatement ps = connection.prepareStatement(
@@ -129,4 +132,267 @@ public class DatabaseConnectionHandler {
         return out;
     }
 
+    public void createUser(String username, String password_hash) {
+        try {
+            PreparedStatement ps = connection.prepareStatement(
+                    "INSERT INTO User_Account VALUES (?, ?)"
+            );
+            ps.setString(1, username);
+            ps.setString(2, password_hash);
+
+            ps.executeUpdate();
+            connection.commit();
+
+            ps.close();
+        } catch (SQLException e) {
+            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
+            rollbackConnection();
+        }
+    }
+
+    public UserAccount selectUser(String username, String password_hash) {
+        UserAccount out = null;
+        try {
+            PreparedStatement ps = connection.prepareStatement(
+                    "SELECT * FROM User_Account WHERE username = ? AND password_hash = ?"
+            );
+            ps.setString(1,   username);
+            ps.setString(2,   password_hash);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                UserAccount account = new UserAccount(
+                        rs.getString("username"),
+                        rs.getString("password_hash")
+                );
+            out = account;
+            }
+            rs.close();
+            ps.close();
+        } catch (SQLException e) {
+            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
+        }
+        return out;
+    }
+
+    public void addFile(File f) {
+        try {
+            PreparedStatement ps = connection.prepareStatement(
+                    "INSERT INTO Repository_Object VALUES (?, ?, ?, ?, ?, ?, ?)"
+            );
+            ps.setString(1, f.getRepositoryName());
+            ps.setString(2, f.getPath());
+            ps.setString(3, f.getFile_extension());
+            ps.setString(4, f.getFile_contents());
+            ps.setInt(5, f.getSize());
+            ps.setString(6, f.getParentDirectory());
+            ps.setString(7, f.getRepositoryName());
+
+
+            ps.executeUpdate();
+            connection.commit();
+
+            ps.close();
+        } catch (SQLException e) {
+            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
+            rollbackConnection();
+        }
+    }
+
+    public void addCommit(Commit c) {
+        try {
+            PreparedStatement ps = connection.prepareStatement(
+                    "INSERT INTO Commit VALUES (?, ?, ?, ?, ?, ?)"
+            );
+            ps.setString(1, c.getCommit_SHA());
+            ps.setInt(2, c.getCommit_number());
+            ps.setString(3, c.getRepository_name());
+            ps.setString(4, c.getFile_changed());
+            ps.setString(5, c.getAuthor());
+            ps.setTimestamp(6, c.getTimestamp());
+
+
+            ps.executeUpdate();
+            connection.commit();
+
+            ps.close();
+        } catch (SQLException e) {
+            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
+            rollbackConnection();
+        }
+    }
+
+    public Organization getOrganization(String orgName) {
+        Organization out = null;
+        try {
+            PreparedStatement ps = connection.prepareStatement(
+                    "SELECT * FROM Organization WHERE organization_name LIKE ?"
+            );
+            ps.setString(1,   orgName);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Organization account = new Organization(
+                        rs.getString("organization_name"),
+                        rs.getString("country")
+                );
+                out = account;
+            }
+            rs.close();
+            ps.close();
+        } catch (SQLException e) {
+            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
+        }
+        return out;
+    }
+
+    public void setOrganization(UserAccount user, Organization org) {
+        try {
+            PreparedStatement ps = connection.prepareStatement("UPDATE is_member_of SET  organization_name = ? WHERE username = ?");
+            ps.setString(1, org.getOrganization_name());
+            ps.setString(2, user.getUsername());
+
+            int rowCount = ps.executeUpdate();
+            if (rowCount == 0) {
+                System.out.println(WARNING_TAG + " Username " + user.getUsername() + " does not exist!");
+            }
+
+            connection.commit();
+
+            ps.close();
+        } catch (SQLException e) {
+            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
+            rollbackConnection();
+        }
+    }
+
+    public String[] get_extensions_list(Repository repo) {
+        ArrayList<String> result = new ArrayList<>();
+        try {
+            PreparedStatement ps = connection.prepareStatement(
+                    "SELECT file_extension FROM Repository_Object WHERE repository = ? AND file_extension IS NOT NULL"
+            );
+            ps.setString(1,   repo.getRepository_name());
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                result.add(rs.getString("file_extension"));
+            }
+            rs.close();
+            ps.close();
+        } catch (SQLException e) {
+            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
+        }
+        return result.toArray(new String[result.size()]);
+    }
+    private void rollbackConnection() {
+        try  {
+            connection.rollback();
+        } catch (SQLException e) {
+            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
+        }
+    }
+
+    public HashMap<String, Integer> get_num_user_commits_per_repo(UserAccount user) {
+        HashMap<String, Integer> out = new HashMap<>();
+        try {
+            PreparedStatement ps = connection.prepareStatement(
+                    "SELECT COUNT(*) as count_val, repository_name FROM Commit WHERE author = ? GROUP BY repository_name"
+            );
+            ps.setString(1, user.getUsername());
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                out.put(rs.getString("repository_name"), rs.getInt("count_val"));
+            }
+            rs.close();
+            ps.close();
+        } catch (SQLException e) {
+            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
+        }
+        return out;
+    }
+
+    public int get_avg_contributer_commit_per_repo(Organization org) {
+        int out = 0;
+        try {
+            PreparedStatement ps = connection.prepareStatement(
+                    "SELECT AVG(count_val)" +
+                        "FROM (SELECT COUNT(*) as count_val " +
+                            "FROM Commit C, Repository R " +
+                            "WHERE C.repository_name = R.repository_name AND R.organization_name = ?" +
+                            "GROUP BY R.repository_name)"
+            );
+            ps.setString(1, org.getOrganization_name());
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                out = rs.getInt(1);
+            }
+            rs.close();
+            ps.close();
+        } catch (SQLException e) {
+            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
+        }
+        return out;
+    }
+    public String[] find_mega_contributers(Organization org) {
+        ArrayList<String> megaContributors = new ArrayList<>();
+        try {
+            PreparedStatement ps = connection.prepareStatement(
+                    "SELECT U.username " +
+                        "FROM User_Account U " +
+                        "WHERE NOT EXISTS" +
+                            "((SELECT R.repository_name" +
+                            "   FROM Repository R " +
+                            "   WHERE R.organization_name = ?)" +
+                            "MINUS " +
+                            "(SELECT C.repository_name " +
+                            "   FROM Commit C, Repository R" +
+                            "   WHERE C.author = U.username AND C.repository_name = R.repository_name AND R.organization_name = ?))"
+            );
+            ps.setString(1, org.getOrganization_name());
+            ps.setString(2, org.getOrganization_name());
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                megaContributors.add(rs.getString(1));
+            }
+            rs.close();
+            ps.close();
+        } catch (SQLException e) {
+            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
+        }
+        return megaContributors.toArray(new String[megaContributors.size()]);
+    }
+    public UserAccount[] getTopContributors(Repository repo) {
+        ArrayList<UserAccount> out = new ArrayList<>();
+        try {
+            PreparedStatement ps = connection.prepareStatement(
+                    "SELECT U.username, U.password_hash " +
+                            "        FROM User_Account U " +
+                            "        GROUP BY U.username, U.password_hash " +
+                            "        HAVING (SELECT Count(*) " +
+                            "                 FROM Commit Co " +
+                            "                 WHERE Co.author = U.username AND Co.repository_name = ?)" +
+                            "                >= " +
+                            "               (SELECT AVG(counts) " +
+                            "               FROM ( " +
+                            "                   SELECT COUNT(*) as counts " +
+                            "                   FROM Commit Co " +
+                            "                   WHERE Co.repository_name = ? " +
+                            "                   GROUP BY Co.author))"
+            );
+            ps.setString(1, repo.getRepository_name());
+            ps.setString(1, repo.getRepository_name());
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                UserAccount account = new UserAccount(
+                        rs.getString("username"),
+                        rs.getString("password_hash")
+                );
+                out.add(account);
+            }
+            rs.close();
+            ps.close();
+        } catch (SQLException e) {
+            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
+        }
+        return out.toArray(new UserAccount[out.size()]);
+    }
 }

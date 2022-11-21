@@ -1,9 +1,9 @@
 connect ora_bsaoudio;
 
 CREATE TABLE User_Account (
-    Username CHAR (20),
-    Password_hash CHAR (20),
-    PRIMARY KEY (Username)
+    username VARCHAR2(20),
+    password_hash CHAR (20),
+    PRIMARY KEY (username)
 );
 GRANT SELECT ON User_Account TO PUBLIC;
 
@@ -15,136 +15,136 @@ GRANT SELECT ON Date_Stamp TO PUBLIC;
 
 
 CREATE TABLE FIPPA_Details (
-   Country CHAR (60),
-   FIPPA_Compliance INTEGER,
+   country VARCHAR2(60),
+   fippa_compliance INTEGER,
    PRIMARY KEY (country)
 );
 GRANT SELECT ON FIPPA_Details TO PUBLIC;
 
 
 CREATE TABLE Organization (
-    Organization_name CHAR (20),
-    Country CHAR(60),
-    PRIMARY KEY (Organization_name),
-    FOREIGN KEY (Country)
+    organization_name VARCHAR2(20),
+    country VARCHAR2(60),
+    PRIMARY KEY (organization_name),
+    FOREIGN KEY (country)
         REFERENCES FIPPA_Details
 );
 GRANT SELECT ON Organization TO PUBLIC;
 
 CREATE TABLE Repository (
-    Repository_name CHAR (40),
-    Organization_name CHAR (20),
-    Date_created TIMESTAMP,
-    PRIMARY KEY (Repository_name),
-    FOREIGN KEY (Organization_name)
-        REFERENCES Organization,
-    FOREIGN KEY (Date_created)
+    repository_name VARCHAR2(40),
+    organization_name VARCHAR2(20),
+    date_created TIMESTAMP,
+    PRIMARY KEY (repository_name),
+    FOREIGN KEY (organization_name)
+        REFERENCES organization,
+    FOREIGN KEY (date_created)
         REFERENCES Date_Stamp(time_stamp)
 );
 GRANT SELECT ON Repository TO PUBLIC;
 
 CREATE TABLE Project_board (
-   Board_title CHAR(20),
-   Repository_name CHAR(40) NOT NULL,
-   PRIMARY KEY (Board_title),
-   FOREIGN KEY (Repository_name)
+   board_title VARCHAR2(20),
+   repository_name VARCHAR2(40) NOT NULL,
+   PRIMARY KEY (board_title),
+   FOREIGN KEY (repository_name)
        REFERENCES Repository
 );
 GRANT SELECT ON Project_board TO PUBLIC;
 
 CREATE TABLE Issue (
-    Issue_ID INTEGER,
-    Issue_message CHAR(200),
-    Owning_board CHAR(20) NOT NULL,
-    PRIMARY KEY (Issue_ID),
-    FOREIGN KEY (Owning_board)
-        REFERENCES Project_board(Board_title)
+    issue_id INTEGER,
+    issue_message VARCHAR2(200),
+    owning_board VARCHAR2(20) NOT NULL,
+    PRIMARY KEY (issue_ID),
+    FOREIGN KEY (owning_board)
+        REFERENCES Project_board(board_title)
 );
 GRANT SELECT ON Issue TO PUBLIC;
 
 CREATE TABLE Repository_Object (
-    Repository CHAR(40),
-    file_Path CHAR(40),
-    file_extension CHAR(5),
-    file_contents CHAR(2000),
+    repository VARCHAR2(40),
+    file_Path VARCHAR2(40),
+    file_extension VARCHAR2(5),
+    file_contents VARCHAR2(2000),
     File_size INTEGER,
-    Parent_Directory_Path CHAR(40) DEFAULT '/',
-    Parent_Directory_Repository CHAR (40),
-    PRIMARY KEY (Repository, file_Path),
-    FOREIGN KEY (Repository)
+    parent_directory_path VARCHAR2(40) DEFAULT '/',
+    parent_directory_repository VARCHAR2 (40),
+    PRIMARY KEY (repository, file_Path),
+    FOREIGN KEY (repository)
         REFERENCES Repository,
-    FOREIGN KEY (Parent_Directory_Repository, Parent_Directory_Path)
-        REFERENCES Repository_Object(Repository, file_path)
+    FOREIGN KEY (parent_directory_repository, parent_directory_path)
+        REFERENCES Repository_Object(repository, file_path)
 );
 GRANT SELECT ON Repository_Object TO PUBLIC;
 
 
 CREATE TABLE Is_Member_of(
-     Username CHAR(20),
-     Organization_name CHAR(20) NOT NULL,
-     PRIMARY KEY (Username, Organization_name),
-     FOREIGN KEY (Username)
-        REFERENCES User_Account(Username),
-     FOREIGN KEY (Organization_name)
+     username VARCHAR2(20),
+     organization_name VARCHAR2(20) NOT NULL,
+     PRIMARY KEY (username, organization_name),
+     FOREIGN KEY (username)
+        REFERENCES User_Account(username),
+     FOREIGN KEY (organization_name)
         REFERENCES Organization
 );
 GRANT SELECT ON Is_Member_of TO PUBLIC;
 
 
 CREATE TABLE Contributor_of (
-    Username CHAR(20),
-    Repository_name CHAR(40),
-    PRIMARY KEY (Username, Repository_name),
-    FOREIGN KEY (Username)
-            REFERENCES User_Account(Username),
-    FOREIGN KEY (Repository_name)
+    username VARCHAR2(20),
+    repository_name VARCHAR2(40),
+    PRIMARY KEY (username, repository_name),
+    FOREIGN KEY (username)
+            REFERENCES User_Account(username),
+    FOREIGN KEY (repository_name)
             REFERENCES Repository
 );
 GRANT SELECT ON Contributor_of TO PUBLIC;
 
 
 CREATE TABLE Assigned_to (
-     Username CHAR(20),
-     Issue_ID INTEGER,
-     PRIMARY KEY (Username, Issue_ID),
-     FOREIGN KEY (Username)
-         REFERENCES User_Account(Username),
-     FOREIGN KEY (Issue_ID)
+     username VARCHAR2(20),
+     issue_id INTEGER,
+     PRIMARY KEY (username, issue_id),
+     FOREIGN KEY (username)
+         REFERENCES User_Account(username),
+     FOREIGN KEY (issue_id)
          REFERENCES Issue
 );
 GRANT SELECT ON Assigned_to TO PUBLIC;
 
 
 CREATE TABLE Commit (
-    Commit_SHA CHAR (64),
-    Commit_number INTEGER,
-    Repository_name CHAR (20) NOT NULL,
-    File_changed CHAR (20) NOT NULL,
-    Author CHAR (20) NOT NULL,
-    Date_created TIMESTAMP NOT NULL,
-    PRIMARY KEY (Commit_SHA),
-    FOREIGN KEY (Date_created)
+    commit_sha VARCHAR2(64),
+    commit_number INTEGER,
+    repository_name VARCHAR2(20) NOT NULL,
+    file_changed VARCHAR2(20) NOT NULL,
+    author VARCHAR2(20) NOT NULL,
+    date_created TIMESTAMP NOT NULL,
+    PRIMARY KEY (commit_sha),
+    FOREIGN KEY (date_created)
         REFERENCES Date_Stamp(time_stamp),
-    FOREIGN KEY (Repository_name)
+    FOREIGN KEY (repository_name)
         REFERENCES Repository,
-    FOREIGN KEY (Repository_name, File_changed)
-        REFERENCES Repository_Object(Repository, file_path),
-    FOREIGN KEY (Author)
+    FOREIGN KEY (repository_name, file_changed)
+        REFERENCES Repository_Object(repository, file_path),
+    FOREIGN KEY (author)
         REFERENCES User_Account(Username)
 );
 GRANT SELECT ON Commit TO PUBLIC;
 
 CREATE TABLE Line_change (
-     Commit_SHA CHAR (64),
-     Line_number INTEGER,
-     PRIMARY KEY (Commit_SHA, Line_number),
-     FOREIGN KEY (Commit_SHA)
-         REFERENCES Commit(Commit_SHA)
+     commit_sha VARCHAR2(64),
+     line_number INTEGER,
+     PRIMARY KEY (commit_sha, line_number),
+     FOREIGN KEY (commit_sha)
+         REFERENCES Commit(commit_sha)
 );
 GRANT SELECT ON Line_change TO PUBLIC;
 
 -- Insert values into User_Account
-INSERT INTO ora_bsaoudio.User_Account(Username, Password_hash)
+INSERT INTO User_Account(Username, Password_hash)
     VALUES ('eshaq', 'pass123');
 INSERT INTO User_Account(Username, Password_hash)
     VALUES ('oliver', 'pass23');
@@ -185,7 +185,11 @@ INSERT INTO Organization(Organization_name, Country)
 
 -- Insert into Date_Stampe
 INSERT INTO Date_Stamp(time_stamp)
-    VALUES (TO_TIMESTAMP('2022-04-12 11:32:06', 'YYYY-MM-DD HH24:MI:SS'))
+    VALUES (TO_TIMESTAMP('2022-04-12 11:32:06', 'YYYY-MM-DD HH24:MI:SS'));
+INSERT INTO Date_Stamp(time_stamp)
+    VALUES (TO_TIMESTAMP('2022-04-12 11:36:06', 'YYYY-MM-DD HH24:MI:SS'));
+INSERT INTO Date_Stamp(time_stamp)
+    VALUES (TO_TIMESTAMP('2022-04-12 11:37:06', 'YYYY-MM-DD HH24:MI:SS'));
 
 -- Insert into Repository
 INSERT INTO Repository(Repository_name, Organization_name, Date_created)
@@ -216,12 +220,40 @@ INSERT INTO Repository_Object(Repository, file_Path, file_extension, file_conten
     VALUES ('CS50','/README.md', '.md', '# Hello world!', 32, '/', 'CS50');
 
 -- Insert into Commit
--- INSERT INTO Commit(Commit_SHA, Commit_number, Repository_name, File_changed, Author, Date_created)
---     VALUES ('331dbc09c8afa4c077f448e4c1ef1e42297879d3fcfdbf2e7e6494fa6d831cec',
---             1,
---             'CPSC304',
---             '/README.md',
---             'eshaq',
---             TO_TIMESTAMP('2022-04-12 11:32:06', 'YYYY-MM-DD HH24:MI:SS')
--- );
+INSERT INTO Commit(Commit_SHA, Commit_number, Repository_name, File_changed, Author, Date_created)
+    VALUES ('331dbc09c8afa4c077f448e4c1ef1e42297879d3fcfdbf2e7e6494fa6d831cec',
+            1,
+            'CPSC304',
+            '/README.md',
+            'eshaq',
+            TO_TIMESTAMP('2022-04-12 11:32:06', 'YYYY-MM-DD HH24:MI:SS')
+);
+INSERT INTO Commit(Commit_SHA, Commit_number, Repository_name, File_changed, Author, Date_created)
+VALUES ('331dbc09c8afa4c07fdadfasfadsf297879d3fcfdbf2e7e6494fa6d831cec',
+        1,
+        'CPSC310',
+        '/README.md',
+        'oussama',
+        TO_TIMESTAMP('2022-04-12 11:36:06', 'YYYY-MM-DD HH24:MI:SS')
+       );
+INSERT INTO Commit(Commit_SHA, Commit_number, Repository_name, File_changed, Author, Date_created)
+VALUES ('331dbc09c8afaasdfaadsf297879d3fcfdbf2e7e6494fa6d831cec',
+        2,
+        'CPSC310',
+        '/README.md',
+        'oussama',
+        TO_TIMESTAMP('2022-04-12 11:37:06', 'YYYY-MM-DD HH24:MI:SS')
+       );
+INSERT INTO Commit(Commit_SHA, Commit_number, Repository_name, File_changed, Author, Date_created)
+VALUES ('asfdadsfasdfadsfasdfadsfads',
+        2,
+        'CPSC304',
+        '/README.md',
+        'oussama',
+        TO_TIMESTAMP('2022-04-12 11:37:06', 'YYYY-MM-DD HH24:MI:SS')
+       );
+
+INSERT INTO IS_MEMBER_OF(Username, organization_name)
+    VALUES ('oussama', 'UBC');
+COMMIT;
 
