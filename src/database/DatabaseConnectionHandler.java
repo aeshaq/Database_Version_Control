@@ -97,7 +97,7 @@ public class DatabaseConnectionHandler {
                         rs.getString("file_path"),
                         rs.getInt("file_size")
                 );
-                System.out.println("Repsitory name: " + rs.getString("Repository"));
+                System.out.println("Repository name: " + rs.getString("Repository"));
                 result.add(model);
             }
             rs.close();
@@ -309,7 +309,7 @@ public class DatabaseConnectionHandler {
         return out;
     }
 
-    public int get_avg_contributer_commit_per_repo(Organization org) {
+    public int get_avg_contributor_commit_per_repo(Organization org) {
         int out = 0;
         try {
             PreparedStatement ps = connection.prepareStatement(
@@ -331,7 +331,7 @@ public class DatabaseConnectionHandler {
         }
         return out;
     }
-    public String[] find_mega_contributers(Organization org) {
+    public String[] find_mega_contributors(Organization org) {
         ArrayList<String> megaContributors = new ArrayList<>();
         try {
             PreparedStatement ps = connection.prepareStatement(
