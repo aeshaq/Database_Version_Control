@@ -70,7 +70,7 @@ public class DatabaseConnectionHandler {
                 Repository model = new Repository(
                         rs.getString("Repository_name"),
                         rs.getString("Organization_name"),
-                        rs.getTimestamp("Date_created"));
+                        rs.getDate("Date_created"));
                 result.add(model);
             }
             rs.close();
@@ -163,7 +163,7 @@ public class DatabaseConnectionHandler {
                 UserAccount account = new UserAccount(
                         rs.getString("username"),
                         rs.getString("password_hash")
-            );
+                );
             out = account;
             }
             rs.close();
@@ -174,34 +174,6 @@ public class DatabaseConnectionHandler {
         return out;
     }
 
-    public File selectFile(String repository, String file_path) {
-        File out = null;
-        try {
-            PreparedStatement ps = connection.prepareStatement(
-                    "SELECT * FROM REPOSITORY_OBJECT WHERE repository = ? AND file_path = ?"
-            );
-            ps.setString(1,   repository);
-            ps.setString(2,   file_path);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                File file = new File(
-                        rs.getString("repository"),
-                        rs.getString("parent_directory_path"),
-                        rs.getString("file_path"),
-                        rs.getInt("file_size"),
-                        rs.getString("file_contents"),
-                        rs.getString("file_extension")
-                );
-                out = file;
-                break;
-            }
-            rs.close();
-            ps.close();
-        } catch (SQLException e) {
-            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
-        }
-        return out;
-    }
     public void addFile(File f) {
         try {
             PreparedStatement ps = connection.prepareStatement(
@@ -215,24 +187,6 @@ public class DatabaseConnectionHandler {
             ps.setString(6, f.getParentDirectory());
             ps.setString(7, f.getRepositoryName());
 
-
-            ps.executeUpdate();
-            connection.commit();
-
-            ps.close();
-        } catch (SQLException e) {
-            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
-            rollbackConnection();
-        }
-    }
-    public void updateFile(File f, String newContents) {
-        try {
-            PreparedStatement ps = connection.prepareStatement(
-                    "UPDATE REPOSITORY_OBJECT SET file_contents = ? WHERE repository = ? AND file_path = ?"
-            );
-            ps.setString(1, newContents);
-            ps.setString(2, f.getRepositoryName());
-            ps.setString(3, f.getPath());
 
             ps.executeUpdate();
             connection.commit();
@@ -267,7 +221,6 @@ public class DatabaseConnectionHandler {
         }
     }
 
-    //Returns a single organization
     public Organization getOrganization(String orgName) {
         Organization out = null;
         try {
@@ -291,40 +244,17 @@ public class DatabaseConnectionHandler {
         return out;
     }
 
-    // get all organizaitons matching string
-    public Organization[] getAllOrganizations(String orgName) {
-        ArrayList<Organization> out = new ArrayList<Organization>();
-        try {
-            PreparedStatement ps = connection.prepareStatement(
-                    "SELECT * FROM Organization WHERE organization_name LIKE ?"
-            );
-            ps.setString(1,   "%" + orgName + "%" );
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Organization account = new Organization(
-                        rs.getString("organization_name"),
-                        rs.getString("country")
-                );
-                out.add(account);
-            }
-            rs.close();
-            ps.close();
-        } catch (SQLException e) {
-            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
-        }
-        return out.toArray(new Organization[out.size()]);
-    }
-
-
     public void setOrganization(UserAccount user, Organization org) {
         try {
-            PreparedStatement ps = connection.prepareStatement(
-                    "INSERT INTO IS_MEMBER_OF VALUES (?, ?)"
-            );
-            ps.setString(1, user.getUsername());
-            ps.setString(2, org.getOrganization_name());
+            PreparedStatement ps = connection.prepareStatement("UPDATE is_member_of SET  organization_name = ? WHERE username = ?");
+            ps.setString(1, org.getOrganization_name());
+            ps.setString(2, user.getUsername());
 
-            ps.executeUpdate();
+            int rowCount = ps.executeUpdate();
+            if (rowCount == 0) {
+                System.out.println(WARNING_TAG + " Username " + user.getUsername() + " does not exist!");
+            }
+
             connection.commit();
 
             ps.close();
@@ -334,30 +264,6 @@ public class DatabaseConnectionHandler {
         }
     }
 
-    public Repository getRepository(String repository)
-    {
-        Repository repo = null;
-        try {
-            PreparedStatement ps = connection.prepareStatement(
-                    "SELECT * FROM REPOSITORY WHERE repository_name = ?"
-            );
-            ps.setString(1,   repository);
-            ResultSet rs = ps.executeQuery();
-            rs.next();
-            if (rs != null){
-                repo = new Repository(
-                        rs.getString("repository_name"),
-                        rs.getString("organization_name"),
-                        rs.getTimestamp("date_created")
-                );
-            }
-            rs.close();
-            ps.close();
-        } catch (SQLException e) {
-            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
-        }
-        return repo;
-    }
     public String[] get_extensions_list(Repository repo) {
         ArrayList<String> result = new ArrayList<>();
         try {
@@ -403,7 +309,6 @@ public class DatabaseConnectionHandler {
         return out;
     }
 
-    /* Orgs tab */
     public int get_avg_contributer_commit_per_repo(Organization org) {
         int out = 0;
         try {
@@ -474,7 +379,7 @@ public class DatabaseConnectionHandler {
                             "                   GROUP BY Co.author))"
             );
             ps.setString(1, repo.getRepository_name());
-            ps.setString(2, repo.getRepository_name());
+            ps.setString(1, repo.getRepository_name());
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 UserAccount account = new UserAccount(
