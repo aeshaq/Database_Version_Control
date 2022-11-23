@@ -1,16 +1,19 @@
 import database.DatabaseConnectionHandler;
-import model.Repository_Object;
+import model.Commit;
+import model.Repository;
+import model.UserAccount;
+import model.Organization;
+
+import java.sql.Timestamp;
 
 public class Main {
     public static void main(String[] args) {
         DatabaseConnectionHandler db = new DatabaseConnectionHandler();
         System.out.println("DB initializes");
         db.login("ora_bsaoudio", "a69249035");
-        System.out.println("Login completed");
-        Repository_Object[] repos = db.get_repository_objects("CPSC304");
-        System.out.println("Repos recieved");
-        for (Repository_Object obj : repos) {
-            System.out.println("OBJ: " +  obj.getPath() + ", " + obj.getSize());
+        Repository repo = db.getRepository("CPSC304");
+        for(UserAccount usr : db.getTopContributors(repo)) {
+            System.out.println(usr.getUsername());
         }
     }
 }

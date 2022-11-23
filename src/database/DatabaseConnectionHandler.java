@@ -70,7 +70,7 @@ public class DatabaseConnectionHandler {
                 Repository model = new Repository(
                         rs.getString("Repository_name"),
                         rs.getString("Organization_name"),
-                        rs.getDate("Date_created"));
+                        rs.getTimestamp("Date_created"));
                 result.add(model);
             }
             rs.close();
@@ -174,6 +174,34 @@ public class DatabaseConnectionHandler {
         return out;
     }
 
+    public File selectFile(String repository, String file_path) {
+        File out = null;
+        try {
+            PreparedStatement ps = connection.prepareStatement(
+                    "SELECT * FROM REPOSITORY_OBJECT WHERE repository = ? AND file_path = ?"
+            );
+            ps.setString(1,   repository);
+            ps.setString(2,   file_path);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                File file = new File(
+                        rs.getString("repository"),
+                        rs.getString("parent_directory_path"),
+                        rs.getString("file_path"),
+                        rs.getInt("file_size"),
+                        rs.getString("file_contents"),
+                        rs.getString("file_extension")
+                );
+                out = file;
+                break;
+            }
+            rs.close();
+            ps.close();
+        } catch (SQLException e) {
+            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
+        }
+        return out;
+    }
     public void addFile(File f) {
         try {
             PreparedStatement ps = connection.prepareStatement(
@@ -281,6 +309,30 @@ public class DatabaseConnectionHandler {
         }
     }
 
+    public Repository getRepository(String repository)
+    {
+        Repository repo = null;
+        try {
+            PreparedStatement ps = connection.prepareStatement(
+                    "SELECT * FROM REPOSITORY WHERE repository_name = ?"
+            );
+            ps.setString(1,   repository);
+            ResultSet rs = ps.executeQuery();
+            rs.next();
+            if (rs != null){
+                repo = new Repository(
+                        rs.getString("repository_name"),
+                        rs.getString("organization_name"),
+                        rs.getTimestamp("date_created")
+                );
+            }
+            rs.close();
+            ps.close();
+        } catch (SQLException e) {
+            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
+        }
+        return repo;
+    }
     public String[] get_extensions_list(Repository repo) {
         ArrayList<String> result = new ArrayList<>();
         try {
@@ -397,7 +449,7 @@ public class DatabaseConnectionHandler {
                             "                   GROUP BY Co.author))"
             );
             ps.setString(1, repo.getRepository_name());
-            ps.setString(1, repo.getRepository_name());
+            ps.setString(2, repo.getRepository_name());
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 UserAccount account = new UserAccount(

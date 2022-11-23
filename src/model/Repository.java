@@ -1,17 +1,18 @@
 package model;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 public class Repository {
 
     private final String Repository_name;
     private final String Organization_name;
-    private final Date date;
+    private final Timestamp timestamp;
 
-    public Repository(String name, String organization_name, Date date) {
+    public Repository(String name, String organization_name, Timestamp timestamp) {
         Repository_name = name;
         this.Organization_name = organization_name;
-        this.date = date;
+        this.timestamp = timestamp;
     }
 
     public String getRepository_name() {
@@ -22,8 +23,8 @@ public class Repository {
         return Organization_name;
     }
 
-    public Date getDate() {
-        return date;
+    public Timestamp getTimestamp() {
+        return timestamp;
     }
 
 }
