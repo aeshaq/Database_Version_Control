@@ -3,6 +3,8 @@ package ui;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class OrgsUI extends JPanel {
     private JTextField username;
@@ -75,7 +77,35 @@ public class OrgsUI extends JPanel {
         c.gridx = 1;
         c.gridy = 3;
         this.add(megaScrollPane, c);
+
+        addListener();
     }
 
 
+    protected void addListener() {
+        enterButton.addActionListener(new EnterPressHandler(username));
+        addToUser.addActionListener(new AddOrgPressHandler());
+    }
+
+    private class EnterPressHandler implements ActionListener {
+        JTextField content;
+        private EnterPressHandler(JTextField content) {
+            this.content = content;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            System.out.println(content.getText());
+        }
+    }
+
+    private class AddOrgPressHandler implements ActionListener {
+        private AddOrgPressHandler() {
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            System.out.println("Added (not really)");
+        }
+    }
 }
