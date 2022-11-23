@@ -12,6 +12,5 @@ public class Main {
         for (Repository_Object obj : repos) {
             System.out.println("OBJ: " +  obj.getPath() + ", " + obj.getSize());
         }
-
     }
 }

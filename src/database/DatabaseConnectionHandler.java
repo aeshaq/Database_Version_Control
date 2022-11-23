@@ -163,7 +163,7 @@ public class DatabaseConnectionHandler {
                 UserAccount account = new UserAccount(
                         rs.getString("username"),
                         rs.getString("password_hash")
-                );
+            );
             out = account;
             }
             rs.close();
@@ -187,6 +187,24 @@ public class DatabaseConnectionHandler {
             ps.setString(6, f.getParentDirectory());
             ps.setString(7, f.getRepositoryName());
 
+
+            ps.executeUpdate();
+            connection.commit();
+
+            ps.close();
+        } catch (SQLException e) {
+            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
+            rollbackConnection();
+        }
+    }
+    public void updateFile(File f, String newContents) {
+        try {
+            PreparedStatement ps = connection.prepareStatement(
+                    "UPDATE REPOSITORY_OBJECT SET file_contents = ? WHERE repository = ? AND file_path = ?"
+            );
+            ps.setString(1, newContents);
+            ps.setString(2, f.getRepositoryName());
+            ps.setString(3, f.getPath());
 
             ps.executeUpdate();
             connection.commit();
@@ -244,17 +262,16 @@ public class DatabaseConnectionHandler {
         return out;
     }
 
+
     public void setOrganization(UserAccount user, Organization org) {
         try {
-            PreparedStatement ps = connection.prepareStatement("UPDATE is_member_of SET  organization_name = ? WHERE username = ?");
-            ps.setString(1, org.getOrganization_name());
-            ps.setString(2, user.getUsername());
+            PreparedStatement ps = connection.prepareStatement(
+                    "INSERT INTO IS_MEMBER_OF VALUES (?, ?)"
+            );
+            ps.setString(1, user.getUsername());
+            ps.setString(2, org.getOrganization_name());
 
-            int rowCount = ps.executeUpdate();
-            if (rowCount == 0) {
-                System.out.println(WARNING_TAG + " Username " + user.getUsername() + " does not exist!");
-            }
-
+            ps.executeUpdate();
             connection.commit();
 
             ps.close();
@@ -309,6 +326,7 @@ public class DatabaseConnectionHandler {
         return out;
     }
 
+    /* Orgs tab */
     public int get_avg_contributer_commit_per_repo(Organization org) {
         int out = 0;
         try {

@@ -2,7 +2,7 @@ connect ora_bsaoudio;
 
 CREATE TABLE User_Account (
     username VARCHAR2(20),
-    password_hash CHAR (20),
+    password_hash VARCHAR2(20),
     PRIMARY KEY (username)
 );
 GRANT SELECT ON User_Account TO PUBLIC;
