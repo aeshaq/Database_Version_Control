@@ -267,6 +267,7 @@ public class DatabaseConnectionHandler {
         }
     }
 
+    //Returns a single organization
     public Organization getOrganization(String orgName) {
         Organization out = null;
         try {
@@ -288,6 +289,30 @@ public class DatabaseConnectionHandler {
             System.out.println(EXCEPTION_TAG + " " + e.getMessage());
         }
         return out;
+    }
+
+    // get all organizaitons matching string
+    public Organization[] getAllOrganizations(String orgName) {
+        ArrayList<Organization> out = new ArrayList<Organization>();
+        try {
+            PreparedStatement ps = connection.prepareStatement(
+                    "SELECT * FROM Organization WHERE organization_name LIKE ?"
+            );
+            ps.setString(1,   "%" + orgName + "%" );
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Organization account = new Organization(
+                        rs.getString("organization_name"),
+                        rs.getString("country")
+                );
+                out.add(account);
+            }
+            rs.close();
+            ps.close();
+        } catch (SQLException e) {
+            System.out.println(EXCEPTION_TAG + " " + e.getMessage());
+        }
+        return out.toArray(new Organization[out.size()]);
     }
 
 

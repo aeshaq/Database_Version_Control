@@ -1,16 +1,11 @@
 package ui;
 
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
-
 import database.DatabaseConnectionHandler;
+import model.UserAccount;
 
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import ui.LoginUI;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 public class UIDrawer extends JFrame {
 
@@ -19,11 +14,12 @@ public class UIDrawer extends JFrame {
     private TabButton UserTab;
     private TabButton RepoTab;
     private TabButton OrgTab;
-    private JPanel userPanel;
-    private JPanel orgPanel;
-    private JPanel repoPanel;
+    private LoginUI userPanel;
+    private OrgsUI orgPanel;
+    private RepoUI repoPanel;
     private GridBagConstraints c;
     private DatabaseConnectionHandler db;
+    private UserAccount activeUser;
 
     private int windowX;
     private int windowY;
@@ -73,6 +69,14 @@ public class UIDrawer extends JFrame {
         return currentTab;
     }
 
+    public UserAccount getUserAccount() {
+        return activeUser;
+    }
+
+    public void setUserAccount(UserAccount u) {
+        this.activeUser = u;
+    }
+
     public void updateCurrentTab(String currentTab) {
         this.currentTab = currentTab;
         c.gridx = 0;
@@ -107,7 +111,7 @@ public class UIDrawer extends JFrame {
 
         if (currentTab.equals("Organizations")) {
             if (orgPanel == null) {
-                orgPanel = new OrgsUI();
+                orgPanel = new OrgsUI(db, this);
                 mainPanel.add(orgPanel, c);
                 
             } else {
