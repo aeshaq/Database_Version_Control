@@ -5,6 +5,8 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
+import database.DatabaseConnectionHandler;
+
 import java.awt.*;
 import ui.LoginUI;
 import java.awt.event.ActionListener;
@@ -21,12 +23,14 @@ public class UIDrawer extends JFrame {
     private JPanel orgPanel;
     private JPanel repoPanel;
     private GridBagConstraints c;
+    private DatabaseConnectionHandler db;
 
     private int windowX;
     private int windowY;
 
-    public UIDrawer() {
+    public UIDrawer(DatabaseConnectionHandler db) {
         super("Main Window");
+        this.db = db;
         this.setMinimumSize(new Dimension(800, 600));
         windowX = this.getWidth();
         windowY = this.getHeight();
@@ -115,9 +119,6 @@ public class UIDrawer extends JFrame {
         }
     }
 
-    public static void main(String[] args) {
-        new UIDrawer();
-    }
 
 
 
